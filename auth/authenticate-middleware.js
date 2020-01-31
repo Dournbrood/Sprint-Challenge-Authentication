@@ -1,8 +1,23 @@
-/* 
-  complete the middleware code to check if the user is logged in
-  before granting access to the next middleware/route handler
-*/
+const jwt = require("jsonwebtoken");
 
-module.exports = (req, res, next) => {
-  res.status(401).json({ you: 'shall not pass!' });
+const { jwtSecret } = require("../config/banana");
+
+module.exports = (request, response, next) => {
+  const token = request.headers.authorization
+
+  if (token) {
+    jwt.verify(token, jwtSecret, (error, decodedToken) => {
+      if (error) {
+        response.status(401).json({ message: "Can't get in here without swimming the proper channels, bud." })
+      }
+      else {
+        request.user = { ...decodedToken }
+        console.log("REQUEST.USER IS", request.user)
+        next();
+      }
+    })
+  }
+  else {
+    response.status(401).json({ message: "No authorization header on request! Put in yer authentication token, darnit!" })
+  }
 };
